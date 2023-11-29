@@ -17,8 +17,8 @@ async function createUser({
 }) {
   try {
     const { rows: [ user ] } = await client.query(`
-      INSERT INTO users(username, password, name) 
-      VALUES($1, $2, $3) 
+      INSERT INTO users(username, password, name, location) 
+      VALUES($1, $2, $3, $4) 
       ON CONFLICT (username) DO NOTHING 
       RETURNING *;
     `, [username, password, name, location]);
@@ -99,10 +99,7 @@ async function getUserByUsername(username) {
     `, [ username ]);
 
     if (!user) {
-      throw {
-        name: "UserNotFoundError",
-        message: "A user with that username does not exist"
-      }
+      return null;
     }
 
     return user;
@@ -354,6 +351,23 @@ async function getAllTags() {
   }
 }
 
+async function deletePost(id) {
+  try {
+    await client.query(`
+        DELETE FROM post_tags 
+        WHERE "postId" = $1;
+    `, [id]);
+    const {rows: [posts]} = await client.query(`
+        DELETE FROM posts 
+        WHERE id = $1
+        RETURNING *
+    `, [id]);
+    return posts;
+  } catch {
+    throw error;
+  }
+}
+
 module.exports = {  
   client,
   createUser,
@@ -370,5 +384,6 @@ module.exports = {
   createTags,
   getAllTags,
   createPostTag,
-  addTagsToPost
+  addTagsToPost,
+  deletePost
 }

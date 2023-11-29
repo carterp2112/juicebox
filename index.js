@@ -18,6 +18,8 @@ server.use((req, res, next) => {
   next();
 });
 
+const path = require('path')
+server.use('/', express.static(path.join(__dirname, 'public')))
 const apiRouter = require('./api');
 server.use('/api', apiRouter);
 
